@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { userAuth } from "../Store/authStore";
 import axios from "axios";
+import { useNavigate } from "react-router";
 
 function AddArticles() {
     const {
@@ -10,6 +11,8 @@ function AddArticles() {
         formState: { errors },
     } = useForm();
 
+    const navigate = useNavigate();
+
     const [error, setError] = useState();
     const [loading, setLoading] = useState();
 
@@ -17,7 +20,6 @@ function AddArticles() {
     // console.log(currentUser);
 
     const createNewArticle = async (data) => {
-        // setLoading(true);
         // console.log(data);
         const reqData = {
             author: currentUser._id,
@@ -35,9 +37,9 @@ function AddArticles() {
             { withCredentials: true },
         );
 
-        console.log(res);
+        // console.log(res);
 
-        // setLoading(false);
+        navigate(`/article/${res.data.payload._id}`);
     };
 
     if (loading) {
@@ -56,7 +58,7 @@ function AddArticles() {
                     <input
                         type="text"
                         placeholder="Title of the blog"
-                        className=""
+                        className="border rounded m-2 p-2"
                         {...register("title", {
                             required: "Title is required",
                         })}
@@ -70,7 +72,7 @@ function AddArticles() {
                     <input
                         type="text"
                         placeholder="category of the blog"
-                        className=""
+                        className="border rounded m-2 p-2"
                         {...register("category", {
                             required: "Category is required",
                         })}

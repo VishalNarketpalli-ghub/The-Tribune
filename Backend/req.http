@@ -103,10 +103,19 @@ PUT http://localhost:4000/author-api/articles-delete
 Content-Type: application/json
 
 {
-    "authorId": "69ae92141b905bf3821f53d3",
-    "articleId" : "69aee3b90251a40e36443ba3"
+    "authorId": "69afca09faa1f81ee460a067",
+    "articleId" : "69c66a12f0452b0edfb4380a"
 }
 
+
+### restore article
+PUT http://localhost:4000/author-api/article-reload
+Content-Type: application/json
+
+{
+    "authorId": "69afca09faa1f81ee460a067",
+    "articleId" : "69c66a12f0452b0edfb4380a"
+}
 
 
 ###logout

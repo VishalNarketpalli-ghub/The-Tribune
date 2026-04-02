@@ -26,6 +26,7 @@ function ArticleById() {
                         { withCredentials: true },
                     );
                     setCurrentArticle(res.data.payload);
+                    console.log(res.data.payload);
                 } catch (err) {
                     setError(err.response?.data?.message || err.message);
                 } finally {
@@ -84,9 +85,33 @@ function ArticleById() {
             </p>
         );
 
+    const deleteArticle = async () => {
+        const reqData = {
+            authorId: currentUser._id,
+            articleId: currentArticle._id,
+        };
+
+        const res = await axios.put(
+            "http://localhost:4000/author-api/articles-delete",
+            reqData,
+            { withCredentials: true },
+        );
+
+        // console.log(res);
+
+        // setCurrentArticle(res);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-black min-w-[415px]">
             <div className="bg-gray-300 pt-5 mx-18">
+                <div>
+                    {currentArticle.isArticleActive && (
+                        <p className="border bg-green-400 w-fit px-2 rounded m-2">
+                            Active
+                        </p>
+                    )}
+                </div>
                 <p className="text-6xl text-center font-mono">
                     {currentArticle.title}
                 </p>
@@ -137,7 +162,10 @@ function ArticleById() {
                                     >
                                         Edit Article
                                     </button>
-                                    <button className="border bg-red-500 rounded px-3 py-2 m-1">
+                                    <button
+                                        className="border bg-red-500 rounded px-3 py-2 m-1"
+                                        onClick={deleteArticle}
+                                    >
                                         Delete article
                                     </button>
                                 </div>

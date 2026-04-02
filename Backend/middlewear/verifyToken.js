@@ -8,6 +8,7 @@ export const verifyToken = (...allowedRoles) => {
 
             // Read token from cookies
             let token = req.cookies?.token
+            // console.log(token)
 
             // check token exist
             if (!token) {

@@ -30,6 +30,21 @@ function AuthorProfile() {
         });
     };
 
+    const RestoreArticle = async (currentArticle) => {
+        // console.log(currentArticle);
+
+        // make a backend call and restore the article
+        const res = await axios.put(
+            "http://localhost:4000/author-api/article-reload",
+            {
+                authorId: currentArticle.author._id,
+                articleId: currentArticle._id,
+            },
+            { withCredentials: true },
+        );
+        // console.log(res.data.payload);
+    };
+
     useEffect(() => {
         const fetchArticles = async () => {
             setLoading(true);
@@ -42,7 +57,7 @@ function AuthorProfile() {
         };
         fetchArticles();
         setLoading(false);
-    }, []);
+    }, [articleObj]);
 
     if (loading) {
         return <p>Loading...</p>;
@@ -71,17 +86,36 @@ function AuthorProfile() {
                 {articleObj?.map((e) => (
                     <div
                         key={e._id}
-                        className="border m-2 p-4 bg-gray-200 bg-gradient-to-br from-indigo-950 via-slate-900 to-black hover:border-orange-700"
+                        className="border m-2 p-4 flex justify-between bg-gray-200 bg-gradient-to-br from-indigo-950 via-slate-900 to-black hover:border-orange-700"
                     >
-                        <p className="font-semibold">Title: {e.title}</p>
-                        <p>Auhor: {e.author.firstName}</p>
-                        <p>Category: {e.category}</p>
-                        <button
-                            onClick={() => viewArticle(e)}
-                            className="text-blue-300 cursor-pointer "
-                        >
-                            View Article
-                        </button>
+                        <div>
+                            <p className="font-semibold">Title: {e.title}</p>
+                            <p>Auhor: {e.author.firstName}</p>
+                            <p>Category: {e.category}</p>
+                            <button
+                                onClick={() => viewArticle(e)}
+                                className="text-blue-300 cursor-pointer "
+                            >
+                                View Article
+                            </button>
+                        </div>
+                        {e.isArticleActive && (
+                            <div>
+                                <button className="bg-green-500 px-1 rounded">
+                                    Active
+                                </button>
+                            </div>
+                        )}
+                        {!e.isArticleActive && (
+                            <div>
+                                <button
+                                    className="bg-blue-600 px-1 rounded cursor-pointer"
+                                    onClick={() => RestoreArticle(e)}
+                                >
+                                    Restore
+                                </button>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

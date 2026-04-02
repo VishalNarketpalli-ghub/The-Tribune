@@ -5,6 +5,7 @@ import { userAuth } from "../Store/authStore";
 function Header() {
     const navigate = useNavigate();
     const isAuthenticated = userAuth((state) => state.isAuthenticated);
+    const currentUser = userAuth((state) => state.currentUser);
 
     return (
         <div className="flex bg-[#181228] justify-between items-center gap-3">
@@ -49,10 +50,22 @@ function Header() {
                             </NavLink>
                         </li>
                     )}
-                    {isAuthenticated && (
+                    {isAuthenticated && currentUser.role == "USER" && (
                         <li className="hover:text-orange-500">
                             <NavLink
                                 to="/user-profile"
+                                className={({ isActive }) =>
+                                    isActive ? "text-amber-400 rounded" : ""
+                                }
+                            >
+                                Profile
+                            </NavLink>
+                        </li>
+                    )}
+                    {isAuthenticated && currentUser.role == "AUTHOR" && (
+                        <li className="hover:text-orange-500">
+                            <NavLink
+                                to="/author-profile"
                                 className={({ isActive }) =>
                                     isActive ? "text-amber-400 rounded" : ""
                                 }
