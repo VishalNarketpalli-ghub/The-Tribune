@@ -1,82 +1,118 @@
 import { NavLink } from "react-router";
-import { useNavigate } from "react-router";
 import { userAuth } from "../Store/authStore";
 
 function Header() {
-    const navigate = useNavigate();
     const isAuthenticated = userAuth((state) => state.isAuthenticated);
     const currentUser = userAuth((state) => state.currentUser);
 
     return (
-        <div className="flex bg-[#181228] justify-between items-center gap-3">
-            <img
-                src="https://s3u.tmimgcdn.com/1600x0/u2388748/6dcaaa34ae3e118af6defbbd184391a9.jpg"
-                alt="Logo"
-                className="w-18 rounded-[50%]"
-            />
-            <div>
-                <ul className="text-white flex justify-around gap-8 mr-5">
-                    <li className="hover:text-orange-500">
-                        <NavLink
-                            to=""
-                            className={({ isActive }) =>
-                                isActive ? "text-amber-400 rounded" : ""
-                            }
-                        >
-                            Home
-                        </NavLink>
-                    </li>
-                    {!isAuthenticated && (
-                        <li className="hover:text-orange-500">
+        <header className="sticky top-0 z-50 bg-[#FFFEF9] border-b border-[#E3DDD0]">
+            {/* Accent top bar */}
+            <div className="h-[3px] bg-gradient-to-r from-[#C4590A] via-[#E8893A] to-[#2D6E6E]" />
+
+            <div className="max-w-5xl mx-auto px-6 flex items-center justify-between h-14">
+                {/* Brand */}
+                <NavLink to="" className="group flex items-center gap-2 select-none">
+                    <span className="font-display text-xl font-bold text-[#1C1B18] italic group-hover:text-[#C4590A] transition-colors duration-200">
+                        The Tribune
+                    </span>
+                </NavLink>
+
+                {/* Nav */}
+                <nav>
+                    <ul className="flex items-center gap-1 text-sm font-medium text-[#4A4540]">
+                        <li>
                             <NavLink
-                                to="/register"
+                                to=""
+                                end
                                 className={({ isActive }) =>
-                                    isActive ? "text-amber-400 rounded" : ""
+                                    `px-3 py-1.5 rounded-md transition-colors duration-150 ${
+                                        isActive
+                                            ? "bg-[#FBF0E6] text-[#C4590A]"
+                                            : "hover:bg-[#F7F3EA] hover:text-[#1C1B18]"
+                                    }`
                                 }
                             >
-                                Register
+                                Home
                             </NavLink>
                         </li>
-                    )}
-                    {!isAuthenticated && (
-                        <li className="hover:text-orange-500">
-                            <NavLink
-                                to="/login"
-                                className={({ isActive }) =>
-                                    isActive ? "text-amber-400 rounded" : ""
-                                }
-                            >
-                                Login
-                            </NavLink>
-                        </li>
-                    )}
-                    {isAuthenticated && currentUser.role == "USER" && (
-                        <li className="hover:text-orange-500">
-                            <NavLink
-                                to="/user-profile"
-                                className={({ isActive }) =>
-                                    isActive ? "text-amber-400 rounded" : ""
-                                }
-                            >
-                                Profile
-                            </NavLink>
-                        </li>
-                    )}
-                    {isAuthenticated && currentUser.role == "AUTHOR" && (
-                        <li className="hover:text-orange-500">
-                            <NavLink
-                                to="/author-profile"
-                                className={({ isActive }) =>
-                                    isActive ? "text-amber-400 rounded" : ""
-                                }
-                            >
-                                Profile
-                            </NavLink>
-                        </li>
-                    )}
-                </ul>
+
+                        {!isAuthenticated && (
+                            <>
+                                <li>
+                                    <NavLink
+                                        to="/register"
+                                        className={({ isActive }) =>
+                                            `px-3 py-1.5 rounded-md transition-colors duration-150 ${
+                                                isActive
+                                                    ? "bg-[#FBF0E6] text-[#C4590A]"
+                                                    : "hover:bg-[#F7F3EA] hover:text-[#1C1B18]"
+                                            }`
+                                        }
+                                    >
+                                        Register
+                                    </NavLink>
+                                </li>
+                                <li>
+                                    <NavLink
+                                        to="/login"
+                                        className={({ isActive }) =>
+                                            `ml-1 px-4 py-1.5 rounded-md font-semibold transition-all duration-150 ${
+                                                isActive
+                                                    ? "bg-[#C4590A] text-white"
+                                                    : "bg-[#1C1B18] text-[#FFFEF9] hover:bg-[#C4590A]"
+                                            }`
+                                        }
+                                    >
+                                        Sign in
+                                    </NavLink>
+                                </li>
+                            </>
+                        )}
+
+                        {isAuthenticated && currentUser?.role === "USER" && (
+                            <li>
+                                <NavLink
+                                    to="/user-profile"
+                                    className={({ isActive }) =>
+                                        `flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors duration-150 ${
+                                            isActive
+                                                ? "bg-[#FBF0E6] text-[#C4590A]"
+                                                : "hover:bg-[#F7F3EA] hover:text-[#1C1B18]"
+                                        }`
+                                    }
+                                >
+                                    <span className="w-6 h-6 rounded-full bg-[#C4590A] text-white flex items-center justify-center text-xs font-bold">
+                                        {currentUser?.firstName?.[0]?.toUpperCase()}
+                                    </span>
+                                    My Feed
+                                </NavLink>
+                            </li>
+                        )}
+
+                        {isAuthenticated && currentUser?.role === "AUTHOR" && (
+                            <li>
+                                <NavLink
+                                    to="/author-profile"
+                                    className={({ isActive }) =>
+                                        `flex items-center gap-2 px-3 py-1.5 rounded-md transition-colors duration-150 ${
+                                            isActive
+                                                ? "bg-[#FBF0E6] text-[#C4590A]"
+                                                : "hover:bg-[#F7F3EA] hover:text-[#1C1B18]"
+                                        }`
+                                    }
+                                >
+                                    <span className="w-6 h-6 rounded-full bg-[#2D6E6E] text-white flex items-center justify-center text-xs font-bold">
+                                        {currentUser?.firstName?.[0]?.toUpperCase()}
+                                    </span>
+                                    Dashboard
+                                </NavLink>
+                            </li>
+                        )}
+                    </ul>
+                </nav>
             </div>
-        </div>
+        </header>
     );
 }
 

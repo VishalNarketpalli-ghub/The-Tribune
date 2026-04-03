@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500;1,700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+:root {
+  --bg:          #FFFEF9;
+  --bg-warm:     #F7F3EA;
+  --bg-accent:   #FBF0E6;
+  --border:      #E3DDD0;
+  --border-dark: #C8C0B0;
+
+  --ink:         #1C1B18;
+  --ink-mid:     #4A4540;
+  --ink-muted:   #7A736A;
+
+  --accent:      #C4590A;        /* warm terracotta */
+  --accent-dark: #9E4407;
+  --accent-bg:   #FBF0E6;
+
+  --teal:        #2D6E6E;        /* secondary accent */
+  --teal-bg:     #EAF2F2;
+
+  --tag-1: #FBF0E6; --tag-1-text: #9E4407;
+  --tag-2: #EAF2F2; --tag-2-text: #1E5C5C;
+  --tag-3: #F0EDF8; --tag-3-text: #5C3A8A;
+  --tag-4: #FFF0F0; --tag-4-text: #A02020;
+  --tag-5: #F0F7EC; --tag-5-text: #2F6A10;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display { font-family: 'Playfair Display', Georgia, serif; }
+.font-serif   { font-family: 'Lora', Georgia, serif; }
+.font-sans    { font-family: 'DM Sans', system-ui, sans-serif; }
+
+/* ── Article body ──────────────────────────────────────────────── */
+.article-prose {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1.95;
+  color: #2a2520;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-warm); }
+::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
