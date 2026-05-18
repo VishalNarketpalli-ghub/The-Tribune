@@ -1,26 +1,49 @@
-@import "tailwindcss";
+/**
+ * index.css — global styles and design token definitions for The Tribune.
+ *
+ * Structure:
+ *   1. Google Fonts import (Playfair Display, Lora, DM Sans)
+ *   2. Tailwind CSS base import
+ *   3. CSS custom properties (design tokens)
+ *   4. Base resets and body defaults
+ *   5. Typography utility classes (.font-display, .font-serif, .font-sans)
+ *   6. Animation utilities
+ *   7. Scrollbar styling
+ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500;1,700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* ── Design tokens ─────────────────────────────────────────────── */
+@import "tailwindcss";
+
+/* ── Design tokens ──────────────────────────────────────────────────
+   All colours are defined here so every component references one
+   consistent palette. Changing a value here updates the whole UI.
+   ────────────────────────────────────────────────────────────────── */
 :root {
-  --bg:          #FFFEF9;
-  --bg-warm:     #F7F3EA;
-  --bg-accent:   #FBF0E6;
+  /* Page backgrounds: parchment warm tones */
+  --bg:          #FFFEF9;   /* main page background */
+  --bg-warm:     #F7F3EA;   /* slightly warmer — used for section bands */
+  --bg-accent:   #FBF0E6;   /* lightest terracotta tint — hover states */
+
+  /* Borders */
   --border:      #E3DDD0;
   --border-dark: #C8C0B0;
 
+  /* Text: ink colour scale from near-black to muted warm grey */
   --ink:         #1C1B18;
   --ink-mid:     #4A4540;
   --ink-muted:   #7A736A;
 
-  --accent:      #C4590A;        /* warm terracotta */
+  /* Primary accent: warm terracotta — buttons, links, active states */
+  --accent:      #C4590A;
   --accent-dark: #9E4407;
   --accent-bg:   #FBF0E6;
 
-  --teal:        #2D6E6E;        /* secondary accent */
+  /* Secondary accent: teal — reader indicators, published badges */
+  --teal:        #2D6E6E;
   --teal-bg:     #EAF2F2;
 
+  /* Category tag colour pairs (background + text) */
   --tag-1: #FBF0E6; --tag-1-text: #9E4407;
   --tag-2: #EAF2F2; --tag-2-text: #1E5C5C;
   --tag-3: #F0EDF8; --tag-3-text: #5C3A8A;
@@ -28,22 +51,38 @@
   --tag-5: #F0F7EC; --tag-5-text: #2F6A10;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* ── Base reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
+  /* DM Sans is the default UI font; serif fonts are applied per-element */
   font-family: 'DM Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Typography utilities ────────────────────────────────────────── */
+
+/* Editorial display headlines — Playfair Display for drama and authority */
 .font-display { font-family: 'Playfair Display', Georgia, serif; }
+
+/* Readable body text in article prose — Lora for warm readability */
 .font-serif   { font-family: 'Lora', Georgia, serif; }
+
+/* UI labels, buttons and meta text — DM Sans for modern clarity */
 .font-sans    { font-family: 'DM Sans', system-ui, sans-serif; }
 
-/* ── Article body ──────────────────────────────────────────────── */
+/* ── Article prose block ─────────────────────────────────────────── */
+/* Applied to the full article body content wrapper */
 .article-prose {
   font-family: 'Lora', Georgia, serif;
   font-size: 1.1rem;
@@ -51,7 +90,25 @@ body {
   color: #2a2520;
 }
 
-/* ── Scrollbar ─────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
+/* ── Fade-in animation ───────────────────────────────────────────── */
+/* Used for page sections appearing after data loads */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out both;
+}
+
+/* Staggered delay variants for sequential element reveals */
+.animate-fade-in-delay-1 { animation: fadeIn 0.35s ease-out 0.05s both; }
+.animate-fade-in-delay-2 { animation: fadeIn 0.35s ease-out 0.10s both; }
+.animate-fade-in-delay-3 { animation: fadeIn 0.35s ease-out 0.15s both; }
+
+/* ── Custom scrollbar ────────────────────────────────────────────── */
+/* Styled to match the warm neutral palette */
+::-webkit-scrollbar       { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-warm); }
 ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-muted); }

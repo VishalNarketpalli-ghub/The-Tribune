@@ -72,26 +72,26 @@ export const userAuth = create((set) => ({
     },
     checkAuth: async () => {
         try {
-            // set loading state
+            // Attempt to restore the session using the JWT stored in the HTTP-only cookie
             set({ loading: true, error: null })
 
-            // make api req
             let res = await axios.get("http://localhost:4000/common-api/check-auth", { withCredentials: true })
 
-            // update state 
+            // Token is valid — restore the authenticated session
             set({
                 loading: false,
                 isAuthenticated: true,
                 currentUser: res.data.payload
             })
         } catch (error) {
-            console.log("err is ", error)
+            // A 401 response means the user is simply not logged in (normal for guests).
+            // We do NOT set an error message here because this is expected behaviour;
+            // showing "Login failed" on the Login page when a guest visits would confuse users.
             set({
                 loading: false,
                 isAuthenticated: false,
                 currentUser: null,
-                // error: error
-                error: error.response?.data.error || "Login failed"
+                error: null   // intentionally null — unauthenticated is not an error condition
             })
         }
     }

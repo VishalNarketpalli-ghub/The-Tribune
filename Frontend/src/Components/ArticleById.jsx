@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { userAuth } from "../Store/authStore";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
+/** Deterministic colour palette for category tags — shared across article views. */
 const tagPalette = [
     { bg: "#FBF0E6", text: "#9E4407" },
     { bg: "#EAF2F2", text: "#1E5C5C" },
@@ -14,14 +16,31 @@ const tagPalette = [
 ];
 const getTag = (str = "") => tagPalette[str.charCodeAt(0) % tagPalette.length];
 
+/**
+ * ArticleById — single-article reader page.
+ *
+ * Data strategy:
+ *   - If the user navigated here from the article list (via `navigate(path, { state })`),
+ *     the article data is already in location.state — no extra fetch needed.
+ *   - If the user arrived via a direct URL (bookmark, share link), we fetch
+ *     the article from the API using the articleId URL param.
+ *
+ * Role-specific UI:
+ *   AUTHOR — can edit or soft-delete their own article.
+ *   USER   — can post a comment.
+ *   Both   — see the article content and existing comments.
+ */
 function ArticleById() {
     const { articleId } = useParams();
     const location      = useLocation();
+
+    // Use pre-loaded state if available to avoid a redundant network request
     const [currentArticle, setCurrentArticle] = useState(location.state || null);
     const [loading, setLoading] = useState(!location.state);
     const [error,   setError]   = useState(null);
     const navigate = useNavigate();
 
+    // Fetch article from API when no state is passed in the navigation
     useEffect(() => {
         if (!currentArticle) {
             const fetchArticle = async () => {
@@ -31,7 +50,6 @@ function ArticleById() {
                         { withCredentials: true },
                     );
                     setCurrentArticle(res.data.payload);
-                    console.log(res.data.payload);
                 } catch (err) {
                     setError(err.response?.data?.message || err.message);
                 } finally {
@@ -40,28 +58,61 @@ function ArticleById() {
             };
             fetchArticle();
         }
-    }, [articleId, currentArticle]);
+    }, [articleId]);
 
     const currentUser = userAuth((state) => state.currentUser);
     const role        = currentUser?.role;
 
     const { register, handleSubmit, reset } = useForm();
 
+    /**
+     * Submit a new comment for this article.
+     * After the server confirms the save, we append the new comment to local
+     * state so the user sees their comment immediately without a page refresh.
+     */
     const submitComment = async (newComment) => {
-        const reqData = {
-            uid:       currentUser._id,
-            articleId: currentArticle._id,
-            comment:   newComment.comment,
-        };
-        await axios.post(
-            "http://localhost:4000/user-api/users-comment",
-            reqData,
-            { withCredentials: true },
-        );
-        reset();
+        try {
+            const reqData = {
+                uid:       currentUser._id,
+                articleId: currentArticle._id,
+                comment:   newComment.comment,
+            };
+            const res = await axios.post(
+                "http://localhost:4000/user-api/users-comment",
+                reqData,
+                { withCredentials: true },
+            );
+
+            // Append the confirmed comment to local state for instant feedback
+            setCurrentArticle(res.data.payload);
+            reset();
+            toast.success("Comment posted");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Could not post comment");
+        }
     };
 
-    /* ── States ─────────────────────────────────────────────────── */
+    /**
+     * Soft-delete the article (AUTHOR action).
+     * After deletion, an AUTHOR is redirected to their profile dashboard
+     * so they do not remain on an "archived" article page.
+     */
+    const deleteArticle = async () => {
+        try {
+            await axios.put(
+                "http://localhost:4000/author-api/articles-delete",
+                { authorId: currentUser._id, articleId: currentArticle._id },
+                { withCredentials: true },
+            );
+            toast.success("Article archived");
+            // Navigate back to the author's dashboard after archiving
+            navigate("/author-profile");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Could not archive article");
+        }
+    };
+
+    /* Loading and error guard states */
     if (loading)
         return (
             <div className="min-h-[70vh] flex items-center justify-center">
@@ -84,25 +135,17 @@ function ArticleById() {
     if (!currentArticle)
         return (
             <div className="min-h-[70vh] flex items-center justify-center px-6">
-                <p className="font-display italic text-xl text-[#7A736A]">
-                    Article not found.
-                </p>
+                <p className="font-display italic text-xl text-[#7A736A]">Article not found.</p>
             </div>
         );
 
-    const deleteArticle = async () => {
-        await axios.put(
-            "http://localhost:4000/author-api/articles-delete",
-            { authorId: currentUser._id, articleId: currentArticle._id },
-            { withCredentials: true },
-        );
-    };
-
+    // Helper: format an ISO date string to a readable "Month DD, YYYY" label
     const fmt = (iso) =>
         new Date(iso).toLocaleDateString("en-US", {
             year: "numeric", month: "long", day: "numeric",
         });
 
+    // Estimate read time based on an average reading speed of 200 words per minute
     const words    = currentArticle.content?.split(/\s+/).length || 0;
     const readTime = Math.max(1, Math.ceil(words / 200));
     const tag      = getTag(currentArticle.category);
@@ -110,11 +153,11 @@ function ArticleById() {
     return (
         <div className="min-h-[80vh] bg-[#FFFEF9]">
 
-            {/* ── Article header ──────────────────────────────────── */}
+            {/* Article header section — category, title, author meta */}
             <div className="bg-[#F7F3EA] border-b border-[#E3DDD0]">
                 <div className="max-w-3xl mx-auto px-6 pt-12 pb-10">
 
-                    {/* Category + status row */}
+                    {/* Category pill + publication status + read time */}
                     <div className="flex items-center gap-3 flex-wrap mb-5">
                         <span
                             className="text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest"
@@ -131,12 +174,12 @@ function ArticleById() {
                         <span className="text-xs text-[#7A736A]">· {readTime} min read</span>
                     </div>
 
-                    {/* Title */}
+                    {/* Article title */}
                     <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#1C1B18] leading-tight mb-6">
                         {currentArticle.title}
                     </h1>
 
-                    {/* Author + dates */}
+                    {/* Author info and timestamps */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-[#C4590A] text-white flex items-center justify-center font-display font-bold text-sm">
@@ -157,13 +200,14 @@ function ArticleById() {
                 </div>
             </div>
 
-            {/* ── Article body ────────────────────────────────────── */}
+            {/* Article body and interactive sections */}
             <div className="max-w-3xl mx-auto px-6 py-12">
+                {/* Article prose content — whitespace-pre-wrap preserves paragraph breaks */}
                 <p className="font-serif text-[1.1rem] leading-[1.95] text-[#2a2520] whitespace-pre-wrap">
                     {currentArticle.content}
                 </p>
 
-                {/* ── Author actions ───────────────────────────────── */}
+                {/* Author-only actions: edit and archive */}
                 {role === "AUTHOR" && (
                     <div className="mt-12 pt-8 border-t border-[#E3DDD0] flex flex-wrap gap-3">
                         <button
@@ -182,28 +226,25 @@ function ArticleById() {
                             onClick={deleteArticle}
                             className="px-5 py-2.5 border border-[#E3DDD0] hover:border-red-300 text-[#7A736A] hover:text-red-600 text-sm font-semibold rounded-lg transition-colors cursor-pointer"
                         >
-                            Delete article
+                            Archive article
                         </button>
                     </div>
                 )}
 
-                {/* ── Comments section ─────────────────────────────── */}
+                {/* Comments section */}
                 <div className="mt-14">
                     <div className="flex items-baseline gap-3 mb-8 pb-5 border-b border-[#E3DDD0]">
-                        <h2 className="font-display text-2xl font-bold text-[#1C1B18]">
-                            Responses
-                        </h2>
-                        <span className="text-sm text-[#7A736A]">
-                            ({currentArticle.comments.length})
-                        </span>
+                        <h2 className="font-display text-2xl font-bold text-[#1C1B18]">Responses</h2>
+                        <span className="text-sm text-[#7A736A]">({currentArticle.comments.length})</span>
                     </div>
 
-                    {/* Add comment — USER only */}
+                    {/* Comment input — USER role only */}
                     {role === "USER" && (
                         <form
                             onSubmit={handleSubmit(submitComment)}
                             className="mb-10 flex gap-3 items-start"
                         >
+                            {/* User avatar initial */}
                             <div className="w-8 h-8 flex-shrink-0 rounded-full bg-[#2D6E6E] text-white flex items-center justify-center text-xs font-bold font-display mt-0.5">
                                 {currentUser?.firstName?.[0]?.toUpperCase() || "U"}
                             </div>
@@ -213,7 +254,7 @@ function ArticleById() {
                                     type="text"
                                     placeholder="Share your thoughts…"
                                     className="flex-1 border border-[#E3DDD0] bg-white rounded-lg px-4 py-2.5 text-sm text-[#1C1B18] placeholder-[#C8C0B0] focus:outline-none focus:border-[#C4590A] focus:ring-2 focus:ring-[#C4590A]/15 transition-all"
-                                    {...register("comment")}
+                                    {...register("comment", { required: true })}
                                 />
                                 <button
                                     id="submit-comment-btn"
@@ -238,6 +279,7 @@ function ArticleById() {
                                 key={e._id}
                                 className="py-6 flex gap-4 border-b border-[#E3DDD0] last:border-0"
                             >
+                                {/* Commenter avatar initial */}
                                 <div className="w-9 h-9 flex-shrink-0 rounded-full bg-[#F7F3EA] border border-[#E3DDD0] text-[#4A4540] flex items-center justify-center text-xs font-bold font-display">
                                     {e.user?.firstName?.[0]?.toUpperCase() || "?"}
                                 </div>

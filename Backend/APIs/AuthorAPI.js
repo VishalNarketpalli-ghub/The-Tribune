@@ -2,7 +2,6 @@ import exp from 'express'
 import { register, authenticate } from '../services/authService.js'
 import { UserTypeModel } from '../Models/UserModel.js'
 import { ArticleModel } from '../Models/ArticleModel.js'
-import { checkAuthor } from '../middlewear/checkAuthor.js'
 import { verifyToken } from '../middlewear/verifyToken.js'
 import { uploadToCloudinary } from '../config/cloudinaryUpload.js'
 import { upload } from '../config/multer.js'
@@ -10,9 +9,7 @@ import { upload } from '../config/multer.js'
 export const authorApp = exp.Router()
 
 
-
-// register author (public)
-// register user
+// Register a new author (public route — no token required)
 authorApp.post(
     "/users",
     upload.single("profileImageUrl"),
@@ -20,15 +17,15 @@ authorApp.post(
         let cloudinaryResult;
 
         try {
-            // get user obj
             let userObj = req.body;
 
-            //  Step 1: upload image to cloudinary from memoryStorage (if exists)
+            // Upload profile image to Cloudinary if the client sent one
             if (req.file) {
                 cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             }
 
-            // Step 2: call existing register()
+            // Register the user with role hard-coded to "AUTHOR"
+            // so the client cannot escalate their own privilege by passing a different role
             const newUserObj = await register({
                 ...userObj,
                 role: "AUTHOR",
@@ -41,103 +38,111 @@ authorApp.post(
             });
 
         } catch (err) {
-
-            // Step 3: rollback 
+            // If Cloudinary upload succeeded but DB save failed, clean up the orphaned image
             if (cloudinaryResult?.public_id) {
                 await cloudinary.uploader.destroy(cloudinaryResult.public_id);
             }
-
-            next(err); // send to your error middleware
+            next(err);
         }
-
     }
 );
 
-// authenticate author (public)
-
-// create article (protected)
+// Create a new article (protected — AUTHOR only)
 authorApp.post('/articles', verifyToken("AUTHOR"), async (req, res) => {
-
-    // get the article
     let articleObj = req.body
 
-    // check if the authorId in req obj is same as req.user(Verified Author In cookie from jwt)
-    // console.log(req.user)
+    // Cross-check: the author ID supplied in the request body must match
+    // the ID embedded in the verified JWT to prevent one author posting as another
     if (req.user._id != articleObj.author) {
-        return res.status(401).json({ message: "unregistered author, login with valid user details" })
+        return res.status(401).json({ message: "Unregistered author — login with valid credentials" })
     }
 
-    // create article doc
     let articleDoc = new ArticleModel(articleObj)
-
-    // save
     let createdArticleDoc = await articleDoc.save()
 
-    // send res
     res.status(201).json({ message: "Article created", payload: createdArticleDoc })
 })
 
-// read articles from author (protected)
+// Fetch all articles belonging to this author (protected — AUTHOR only)
 authorApp.get('/articles/:authorId', verifyToken("AUTHOR"), async (req, res) => {
-    // get the auther id
     let authorId = req.params.authorId
 
-    // read article by author
-    let articles = await ArticleModel.find({ author: authorId }).populate("author", "firstName email").populate("comments.user", "firstName")
+    // Include both active and inactive (archived) articles so the author
+    // can see and restore their own archived work
+    let articles = await ArticleModel.find({ author: authorId })
+        .populate("author", "firstName email")
+        .populate("comments.user", "firstName")
+        .sort({ createdAt: -1 })
 
-    // send res
     res.status(201).json({ message: "Articles fetched", payload: articles })
 })
 
 
-// edit article (protected)
+// Update an article's title, category or content (protected — AUTHOR only)
 authorApp.patch('/articles', verifyToken("AUTHOR"), async (req, res) => {
-    // get the update details from body
     let { articleId, author, title, category, content } = req.body
-    // console.log(updateArticleObj)
 
+    // Verify the article exists and belongs to this author before allowing edits
     let articleOfDB = await ArticleModel.findOne({ _id: articleId, author: author })
     if (!articleOfDB) {
         return res.status(404).json({ message: "Article not found" })
     }
 
-    let foundArticle = await ArticleModel.findByIdAndUpdate(articleId, { $set: { title, category, content } }, { new: true }).populate("author", "firstName email").populate("comments.user", "firstName")
-    res.status(200).json({ message: "Article updated successfullt", payload: foundArticle })
+    let foundArticle = await ArticleModel.findByIdAndUpdate(
+        articleId,
+        { $set: { title, category, content } },
+        { new: true }
+    ).populate("author", "firstName email")
+     .populate("comments.user", "firstName")
+
+    res.status(200).json({ message: "Article updated successfully", payload: foundArticle })
 })
 
-// delete article (soft) (protected)
+// Soft-delete an article (protected — AUTHOR only)
+// Sets isArticleActive = false; the author can restore this later.
+// If the article was already admin-deleted (isAdminDeleted = true),
+// disallow even the soft-delete to keep the state consistent.
 authorApp.put('/articles-delete', verifyToken("AUTHOR"), async (req, res) => {
-    // destructre
     let { authorId, articleId } = req.body
 
-    // check if article exist
     let articleOfDB = await ArticleModel.findOne({ _id: articleId, author: authorId })
     if (!articleOfDB) {
         return res.status(404).json({ message: "Article not found" })
     }
 
-    let updatedArticle = await ArticleModel.findByIdAndUpdate(articleId, { $set: { isArticleActive: false } }, { new: true }).populate("author", "firstName email").populate("comments.user", "firstName")
+    let updatedArticle = await ArticleModel.findByIdAndUpdate(
+        articleId,
+        { $set: { isArticleActive: false } },
+        { new: true }
+    ).populate("author", "firstName email")
+     .populate("comments.user", "firstName")
 
-    // send response
-    res.status(200).json({ message: "Article deleted", payload: updatedArticle })
+    res.status(200).json({ message: "Article archived", payload: updatedArticle })
 })
 
-// restore article (Procted)
+// Restore a previously archived article (protected — AUTHOR only)
+// Blocked when isAdminDeleted = true; only the admin can undo that action.
 authorApp.put('/article-reload', verifyToken("AUTHOR"), async (req, res) => {
-
-    // destructre the data
     let { authorId, articleId } = req.body
 
-    // check if article exist
     let articleOfDB = await ArticleModel.findOne({ _id: articleId, author: authorId })
     if (!articleOfDB) {
         return res.status(404).json({ message: "Article not found" })
     }
 
-    // update the article
-    let updatedArticle = await ArticleModel.findByIdAndUpdate(articleId, { $set: { isArticleActive: true } }, { new: true }).populate("author", "firstName email").populate("comments.user", "firstName")
+    // Guard: if an admin removed this article, the author cannot restore it
+    if (articleOfDB.isAdminDeleted) {
+        return res.status(403).json({
+            message: "This article was removed by an administrator and cannot be restored"
+        })
+    }
 
-    // send response
+    let updatedArticle = await ArticleModel.findByIdAndUpdate(
+        articleId,
+        { $set: { isArticleActive: true } },
+        { new: true }
+    ).populate("author", "firstName email")
+     .populate("comments.user", "firstName")
+
     res.status(200).json({ message: "Article restored", payload: updatedArticle })
-
 })

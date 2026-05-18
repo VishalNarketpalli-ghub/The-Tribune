@@ -16,7 +16,7 @@ config()
 const app = exp();
 
 // credentials is to allow the cookies to the browser from cross origin -> server sends the cookie to frontend
-app.use(cors({ origin: ["http://localhost:5173"], credentials: true }))
+app.use(cors({ origin: ["http://localhost:5173", "https://the-tribune.vercel.app"], credentials: true }))
 
 app.use(exp.json());
 
