@@ -50,7 +50,7 @@ function AuthorProfile() {
         try {
             setLoading(true);
             const res = await axios.get(
-                `http://localhost:4000/author-api/articles/${currentUser._id}`,
+                `${import.meta.env.VITE_API_URL}/author-api/articles/${currentUser._id}`,
                 { withCredentials: true },
             );
             setArticleObj(res.data.payload);
@@ -74,7 +74,7 @@ function AuthorProfile() {
     const archiveArticle = async (article) => {
         try {
             await axios.put(
-                "http://localhost:4000/author-api/articles-delete",
+                `${import.meta.env.VITE_API_URL}/author-api/articles-delete`,
                 { authorId: currentUser._id, articleId: article._id },
                 { withCredentials: true },
             );
@@ -93,7 +93,7 @@ function AuthorProfile() {
     const restoreArticle = async (article) => {
         try {
             await axios.put(
-                "http://localhost:4000/author-api/article-reload",
+                `${import.meta.env.VITE_API_URL}/author-api/article-reload`,
                 { authorId: article.author._id, articleId: article._id },
                 { withCredentials: true },
             );

@@ -44,11 +44,12 @@ function Register() {
 
         try {
             let resObj;
+            const baseUrl = import.meta.env.VITE_API_URL;
             if (role === "AUTHOR") {
-                resObj = await axios.post("http://localhost:4000/author-api/users", formData);
+                resObj = await axios.post(`${baseUrl}/author-api/users`, formData);
             }
             if (role === "USER") {
-                resObj = await axios.post("http://localhost:4000/user-api/users", formData);
+                resObj = await axios.post(`${baseUrl}/user-api/users`, formData);
             }
 
             if (resObj?.status === 201) {

@@ -32,7 +32,7 @@ function UserProfile() {
             setLoading(true);
             try {
                 let res = await axios.get(
-                    "http://localhost:4000/user-api/user",
+                    `${import.meta.env.VITE_API_URL}/user-api/user`,
                     { withCredentials: true },
                 );
                 setArticles(res.data.payload);

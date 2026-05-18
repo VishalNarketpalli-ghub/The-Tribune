@@ -43,8 +43,8 @@ function AdminProfile() {
         const fetchData = async () => {
             try {
                 const [articlesRes, usersRes] = await Promise.all([
-                    axios.get("http://localhost:4000/admin-api/articles", { withCredentials: true }),
-                    axios.get("http://localhost:4000/admin-api/users",    { withCredentials: true }),
+                    axios.get(`${import.meta.env.VITE_API_URL}/admin-api/articles`, { withCredentials: true }),
+                    axios.get(`${import.meta.env.VITE_API_URL}/admin-api/users`,    { withCredentials: true }),
                 ]);
                 setArticles(articlesRes.data.payload);
                 setUsers(usersRes.data.payload);
@@ -65,7 +65,7 @@ function AdminProfile() {
     const deleteArticle = async (articleId) => {
         try {
             await axios.put(
-                `http://localhost:4000/admin-api/articles-delete/${articleId}`,
+                `${import.meta.env.VITE_API_URL}/admin-api/articles-delete/${articleId}`,
                 {},
                 { withCredentials: true }
             );
@@ -87,7 +87,7 @@ function AdminProfile() {
     const restoreArticle = async (articleId) => {
         try {
             await axios.put(
-                `http://localhost:4000/admin-api/articles-restore/${articleId}`,
+                `${import.meta.env.VITE_API_URL}/admin-api/articles-restore/${articleId}`,
                 {},
                 { withCredentials: true }
             );
@@ -108,7 +108,7 @@ function AdminProfile() {
     const blockUser = async (uid) => {
         try {
             const res = await axios.put(
-                `http://localhost:4000/admin-api/block/${uid}`,
+                `${import.meta.env.VITE_API_URL}/admin-api/block/${uid}`,
                 {},
                 { withCredentials: true }
             );
@@ -126,7 +126,7 @@ function AdminProfile() {
     const unblockUser = async (uid) => {
         try {
             const res = await axios.put(
-                `http://localhost:4000/admin-api/un-block/${uid}`,
+                `${import.meta.env.VITE_API_URL}/admin-api/un-block/${uid}`,
                 {},
                 { withCredentials: true }
             );

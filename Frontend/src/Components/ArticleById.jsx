@@ -46,7 +46,7 @@ function ArticleById() {
             const fetchArticle = async () => {
                 try {
                     const res = await axios.get(
-                        `http://localhost:4000/common-api/article/${articleId}`,
+                        `${import.meta.env.VITE_API_URL}/common-api/article/${articleId}`,
                         { withCredentials: true },
                     );
                     setCurrentArticle(res.data.payload);
@@ -78,7 +78,7 @@ function ArticleById() {
                 comment:   newComment.comment,
             };
             const res = await axios.post(
-                "http://localhost:4000/user-api/users-comment",
+                `${import.meta.env.VITE_API_URL}/user-api/users-comment`,
                 reqData,
                 { withCredentials: true },
             );
@@ -100,7 +100,7 @@ function ArticleById() {
     const deleteArticle = async () => {
         try {
             await axios.put(
-                "http://localhost:4000/author-api/articles-delete",
+                `${import.meta.env.VITE_API_URL}/author-api/articles-delete`,
                 { authorId: currentUser._id, articleId: currentArticle._id },
                 { withCredentials: true },
             );

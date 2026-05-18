@@ -13,7 +13,7 @@ export const userAuth = create((set) => ({
             set({ loading: true, error: null })
 
             // make api call
-            let res = await axios.post("http://localhost:4000/common-api/login", userCredWithRole, { withCredentials: true })
+            let res = await axios.post(`${import.meta.env.VITE_API_URL}/common-api/login`, userCredWithRole, { withCredentials: true })
             // console.log("res is ", res)
 
             // if invalid login cred
@@ -52,7 +52,7 @@ export const userAuth = create((set) => ({
             set({ loading: true, error: null })
 
             // make logout api req
-            await axios.get("http://localhost:4000/common-api/logout", { withCredentials: true })
+            await axios.get(`${import.meta.env.VITE_API_URL}/common-api/logout`, { withCredentials: true })
 
             // update state
             set({
@@ -75,7 +75,7 @@ export const userAuth = create((set) => ({
             // Attempt to restore the session using the JWT stored in the HTTP-only cookie
             set({ loading: true, error: null })
 
-            let res = await axios.get("http://localhost:4000/common-api/check-auth", { withCredentials: true })
+            let res = await axios.get(`${import.meta.env.VITE_API_URL}/common-api/check-auth`, { withCredentials: true })
 
             // Token is valid — restore the authenticated session
             set({

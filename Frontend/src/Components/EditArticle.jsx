@@ -16,7 +16,7 @@ function EditArticle() {
             const fetchArticle = async () => {
                 try {
                     const res = await axios.get(
-                        `http://localhost:4000/common-api/article/${articleId}`,
+                        `${import.meta.env.VITE_API_URL}/common-api/article/${articleId}`,
                         { withCredentials: true },
                     );
                     setArticle(res.data.payload);
@@ -48,7 +48,7 @@ function EditArticle() {
             content:   data.content,
         };
         const res = await axios.patch(
-            "http://localhost:4000/author-api/articles",
+            `${import.meta.env.VITE_API_URL}/author-api/articles`,
             reqData,
             { withCredentials: true },
         );
