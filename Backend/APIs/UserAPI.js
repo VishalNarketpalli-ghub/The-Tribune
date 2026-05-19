@@ -52,8 +52,8 @@ userRoute.post(
 );
 
 
-// read all articles
-userRoute.get('/user', verifyToken("USER"), async (req, res) => {
+// read all articles — accessible to all authenticated roles
+userRoute.get('/user', verifyToken("USER", "AUTHOR", "ADMIN"), async (req, res) => {
 
     // check for valid user is done by middlewear   
 
