@@ -63,6 +63,11 @@ function ArticleById() {
     const currentUser = userAuth((state) => state.currentUser);
     const role        = currentUser?.role;
 
+    // True only when the logged-in author is the article's owner.
+    // Comparing as strings handles both plain-string and ObjectId cases.
+    const isOwner = role === "AUTHOR" &&
+        String(currentUser?._id) === String(currentArticle?.author?._id);
+
     const { register, handleSubmit, reset } = useForm();
 
     /**
@@ -207,8 +212,8 @@ function ArticleById() {
                     {currentArticle.content}
                 </p>
 
-                {/* Author-only actions: edit and archive */}
-                {role === "AUTHOR" && (
+                {/* Owner-only actions: only the article's own author sees edit/archive */}
+                {isOwner && (
                     <div className="mt-12 pt-8 border-t border-[#E3DDD0] flex flex-wrap gap-3">
                         <button
                             id="edit-article-btn"

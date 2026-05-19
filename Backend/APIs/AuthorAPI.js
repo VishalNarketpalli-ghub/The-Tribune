@@ -63,8 +63,9 @@ authorApp.post('/articles', verifyToken("AUTHOR"), async (req, res) => {
     res.status(201).json({ message: "Article created", payload: createdArticleDoc })
 })
 
-// Fetch all articles belonging to this author (protected — AUTHOR only)
-authorApp.get('/articles/:authorId', verifyToken("AUTHOR"), async (req, res) => {
+// Fetch all articles belonging to this author (protected — all authenticated roles)
+// USER and ADMIN can view an author's public articles via the ArticlesOfAuthor page.
+authorApp.get('/articles/:authorId', verifyToken("USER", "AUTHOR", "ADMIN"), async (req, res) => {
     let authorId = req.params.authorId
 
     // Include both active and inactive (archived) articles so the author
@@ -80,12 +81,17 @@ authorApp.get('/articles/:authorId', verifyToken("AUTHOR"), async (req, res) => 
 
 // Update an article's title, category or content (protected — AUTHOR only)
 authorApp.patch('/articles', verifyToken("AUTHOR"), async (req, res) => {
-    let { articleId, author, title, category, content } = req.body
+    let { articleId, title, category, content } = req.body
 
-    // Verify the article exists and belongs to this author before allowing edits
-    let articleOfDB = await ArticleModel.findOne({ _id: articleId, author: author })
+    // Use req.user._id from the verified JWT as the authoritative owner ID.
+    // Never trust the author ID from the request body — it can be spoofed.
+    const requestingAuthorId = req.user._id
+
+    // Verify the article exists AND belongs to the requesting author
+    let articleOfDB = await ArticleModel.findOne({ _id: articleId, author: requestingAuthorId })
     if (!articleOfDB) {
-        return res.status(404).json({ message: "Article not found" })
+        return res.status(403).json({ message: "Forbidden — you can only edit your own articles" }
+        )
     }
 
     let foundArticle = await ArticleModel.findByIdAndUpdate(

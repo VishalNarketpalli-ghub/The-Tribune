@@ -41,7 +41,8 @@ function EditArticle() {
 
     const updateArticle = async (data) => {
         const reqData = {
-            author:    article.author._id,
+            // Note: `author` is intentionally omitted — the backend uses
+            // req.user._id from the verified JWT to enforce ownership.
             articleId: article._id,
             title:     data.title,
             category:  data.category,
