@@ -16,11 +16,13 @@ commonRout.post('/login', async (req, res) => {
     // call authenticate finction and destructre token, user
     let { token, user } = await authenticate(userCred)
 
-    // add cookie res 
+    // add cookie res
+    // secure: true  → required for HTTPS (Render)
+    // sameSite: "none" → required for cross-origin (Vercel → Render)
     res.cookie("token", token, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: false
+        sameSite: "none",
+        secure: true
     })
 
     // send user response
@@ -32,8 +34,8 @@ commonRout.get("/logout", (req, res) => {
     res.clearCookie('token',
         {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax"
+            secure: true,
+            sameSite: "none"
         }
     )
     res.status(200).json({ messsage: "User logged out" })
