@@ -1,4 +1,4 @@
-# Capstone Project — Blog App
+# Capstone Project — Blog App - The Tribune
 
 This repository contains a full-stack blogging application (Backend + Frontend). This top-level README gives a high-level overview, quick start, and production considerations. More detailed developer guides live in `Backend/README.md` and `Frontend/README.md`.
 
